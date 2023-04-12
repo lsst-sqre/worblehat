@@ -1,0 +1,4 @@
+# We don't want to commit the executable or the module files
+go.mod
+go.sum
+worblehat
