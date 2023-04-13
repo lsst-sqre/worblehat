@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: worblehat-adam
+  namespace: worblehat
+spec:
+  containers:
+  - name: worblehat
+    image: docker.io/lsstsqre/worblehat:ajt-dev
+    env:
+    - name: WORBLEHAT_BASE_HREF
+      value: "/files/adam"
+    - name: WORBLEHAT_TIMEOUT
+      value: "3600"
+    - name: WORBLEHAT_DIR
+      value: "/mnt"
+    volumeMounts:
+    - mountPath: /mnt
+      name: share
+  volumes:
+  - name: share
+    nfs:
+      path: /share1
+      server: 10.87.86.26
+      # 10.87.86.26 is dev
+      # 10.22.240.130 is int
+      # 10.13.105.122 is prod
+  
+
+    
+    

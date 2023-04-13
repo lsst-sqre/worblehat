@@ -96,6 +96,18 @@ func serve(baseUrl string, dir string, bindAddr string) {
 			// We're totally abusing the logger here to update
 			// the global lastOp, since it's called on every
 			// request.
+
+			// We do not count (or log) PROPFIND: on large
+			// filesystems, it does a traversal of
+			// everything, and tries to write ._<file>
+			// properties files, and it's very spammy and
+			// is unlikely to complete in a reasonable
+			// time.
+
+			if r.Method == "PROPFIND" {
+				return
+			}
+
 			lock.Lock()
 			lastOp = time.Now()
 			lock.Unlock()
