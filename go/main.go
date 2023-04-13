@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -20,10 +21,42 @@ var lastOp time.Time
 
 func main() {
 
-	baseUrlF := flag.String("b", "/", "Base URL of server [/].")
-	dirF := flag.String("d", "./", "Root of served directory tree [CWD].")
-	portF := flag.Int("p", 8000, "Port to serve on [8000].")
-	timeoutF := flag.Int("t", 600, "Idle timeout in seconds [600].")
+	baseUrlE := "WORBLEHAT_BASE_URL"
+	dirE := "WORBLEHAT_DIR"
+	portE := "WORBLEHAT_PORT"
+	timeoutE := "WORBLEHAT_TIMEOUT"
+
+	// If Go had either a ternary operator or let you treat empty strings
+	// as false and non-empty strings as true, this would be less clunky.
+
+	baseUrlV := os.Getenv(baseUrlE)
+	if baseUrlV == "" {
+		baseUrlV = "/"
+	}
+	dirV := os.Getenv(baseUrlE)
+	if dirV == "" {
+		dirV = "./"
+	}
+	portVS := os.Getenv(portE)
+	portV := 8000
+	var err error
+	if portVS != "" {
+		if portV, err = strconv.Atoi(portVS); err != nil {
+			log.Fatalf("[PARSER] Could not convert port %s to integer.", portVS)
+		}
+	}
+	timeoutVS := os.Getenv(timeoutE)
+	timeoutV := 600
+	if timeoutVS != "" {
+		if timeoutV, err = strconv.Atoi(timeoutVS); err != nil {
+			log.Fatalf("[PARSER] Could not convert timeout %s to integer.", timeoutVS)
+		}
+	}
+
+	baseUrlF := flag.String("b", baseUrlV, fmt.Sprintf("Base URL of server [$%s:/].", baseUrlE))
+	dirF := flag.String("d", dirV, fmt.Sprintf("Root of served directory tree [$%s:./].", dirE))
+	portF := flag.Int("p", portV, fmt.Sprintf("Port to serve on [$%s:8000].", portE))
+	timeoutF := flag.Int("t", timeoutV, fmt.Sprintf("Idle timeout in seconds [$%s:600].", timeoutE))
 
 	flag.Parse()
 
