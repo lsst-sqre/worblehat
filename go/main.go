@@ -21,7 +21,7 @@ var lastOp time.Time
 
 func main() {
 
-	baseUrlE := "WORBLEHAT_BASE_URL"
+	baseHrefE := "WORBLEHAT_BASE_HREF"
 	dirE := "WORBLEHAT_DIR"
 	portE := "WORBLEHAT_PORT"
 	timeoutE := "WORBLEHAT_TIMEOUT"
@@ -29,11 +29,8 @@ func main() {
 	// If Go had either a ternary operator or let you treat empty strings
 	// as false and non-empty strings as true, this would be less clunky.
 
-	baseUrlV := os.Getenv(baseUrlE)
-	if baseUrlV == "" {
-		baseUrlV = "/"
-	}
-	dirV := os.Getenv(baseUrlE)
+	baseHrefV := os.Getenv(baseHrefE)
+	dirV := os.Getenv(dirE)
 	if dirV == "" {
 		dirV = "./"
 	}
@@ -53,7 +50,7 @@ func main() {
 		}
 	}
 
-	baseUrlF := flag.String("b", baseUrlV, fmt.Sprintf("Base URL of server [$%s:/].", baseUrlE))
+	baseHrefF := flag.String("b", baseHrefV, fmt.Sprintf("Base HREF [$%s:/].", baseHrefE))
 	dirF := flag.String("d", dirV, fmt.Sprintf("Root of served directory tree [$%s:./].", dirE))
 	portF := flag.Int("p", portV, fmt.Sprintf("Port to serve on [$%s:8000].", portE))
 	timeoutF := flag.Int("t", timeoutV, fmt.Sprintf("Idle timeout in seconds [$%s:600].", timeoutE))
@@ -64,16 +61,16 @@ func main() {
 	timeout = time.Duration(int(1e9) * *timeoutF)
 	bindAddr := fmt.Sprintf(":%d", *portF)
 
+	baseHref := *baseHrefF
 	dir := *dirF
-	baseUrl := *baseUrlF
 
 	go reap()
-	serve(baseUrl, dir, bindAddr)
+	serve(baseHref, dir, bindAddr)
 }
 
 func reap() {
 	// We rely on the global lastOp being updated by the route handler
-	log.Print("[REAPER] Starting.")
+	log.Printf("[REAPER] Starting with timeout %s", timeout)
 	for {
 		lock.RLock()
 		since := time.Since(lastOp)
@@ -87,15 +84,32 @@ func reap() {
 	}
 }
 
-func serve(baseUrl string, dir string, bindAddr string) {
-	log.Print("[SERVER] Starting.")
+func serve(baseHref string, dir string, bindAddr string) {
+	log.Printf("[SERVER] Starting to serve %s at %s on %s", dir, bindAddr, baseHref)
+	prefix := baseHref
+	if prefix == "/" {
+		prefix = ""
+	}
 	dav := &webdav.Handler{
+		Prefix:     prefix,
 		FileSystem: webdav.Dir(dir),
 		LockSystem: webdav.NewMemLS(),
 		Logger: func(r *http.Request, err error) {
 			// We're totally abusing the logger here to update
 			// the global lastOp, since it's called on every
 			// request.
+
+			// We do not count (or log) PROPFIND: on large
+			// filesystems, it does a traversal of
+			// everything, and tries to write ._<file>
+			// properties files, and it's very spammy and
+			// is unlikely to complete in a reasonable
+			// time.
+
+			if r.Method == "PROPFIND" {
+				return
+			}
+
 			lock.Lock()
 			lastOp = time.Now()
 			lock.Unlock()
@@ -107,7 +121,7 @@ func serve(baseUrl string, dir string, bindAddr string) {
 			log.Printf(logmsg)
 		},
 	}
-	http.Handle(baseUrl, dav)
+	http.Handle("/", dav)
 
 	if err := http.ListenAndServe(bindAddr, nil); err != nil {
 		log.Fatalf("[SERVER] ERROR: %w", err)
