@@ -2,6 +2,7 @@ apiVersion: gafaelfawr.lsst.io/v1alpha1
 kind: GafaelfawrIngress
 metadata:
   name: worblehat-adam
+  namespace: worblehat
   labels:
     owner: adam
 config:
@@ -22,8 +23,8 @@ template:
       - host: {{ required "global.host must be set" .Values.global.host | quote }}
         http:
           paths:
-            - path: "/files/adam"
-              pathType: "Prefix"
+            - path: /files/adam(/|$)(.*)
+              pathType: ImplementationSpecific
               backend:
                 service:
                   name: worblehat-adam

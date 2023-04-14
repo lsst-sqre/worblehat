@@ -7,7 +7,7 @@ RUN CGO_ENABLED=0 GOOS=linux make
 FROM gcr.io/distroless/base-debian11 AS build-release-stage
 WORKDIR /
 COPY --from=build-stage /opt/worblehat/worblehat /worblehat
-USER nonroot:nonroot
+USER 65532:65532
 ENTRYPOINT [ "/worblehat" ]
 
 

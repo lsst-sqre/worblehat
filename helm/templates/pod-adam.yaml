@@ -3,10 +3,13 @@ kind: Pod
 metadata:
   name: worblehat-adam
   namespace: worblehat
+  labels:
+    owner: adam
 spec:
   containers:
   - name: worblehat
     image: docker.io/lsstsqre/worblehat:ajt-dev
+    imagePullPolicy: Always
     env:
     - name: WORBLEHAT_BASE_HREF
       value: "/files/adam"
@@ -14,9 +17,21 @@ spec:
       value: "3600"
     - name: WORBLEHAT_DIR
       value: "/mnt"
+    ports:
+    - containerPort: 8000
+      name: http
+      protocol: TCP      
     volumeMounts:
     - mountPath: /mnt
       name: share
+  restartPolicy: Never
+  securityContext:
+    fsGroup: 3000001
+    runAsNonRoot: true
+    supplementalGroups:
+    - 3000001
+    - 2000004
+    - 2000003
   volumes:
   - name: share
     nfs:
