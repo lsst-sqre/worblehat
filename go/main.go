@@ -33,7 +33,7 @@ func main() {
 	if baseUrlV == "" {
 		baseUrlV = "/"
 	}
-	dirV := os.Getenv(baseUrlE)
+	dirV := os.Getenv(dirE)
 	if dirV == "" {
 		dirV = "./"
 	}
