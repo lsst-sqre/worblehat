@@ -30,9 +30,6 @@ func main() {
 	// as false and non-empty strings as true, this would be less clunky.
 
 	baseHrefV := os.Getenv(baseHrefE)
-	if baseHrefV == "" {
-		baseHrefV = "/"
-	}
 	dirV := os.Getenv(dirE)
 	if dirV == "" {
 		dirV = "./"
@@ -89,7 +86,12 @@ func reap() {
 
 func serve(baseHref string, dir string, bindAddr string) {
 	log.Printf("[SERVER] Starting to serve %s at %s on %s", dir, bindAddr, baseHref)
+	prefix := baseHref
+	if prefix == "/" {
+		prefix = ""
+	}
 	dav := &webdav.Handler{
+		Prefix:     prefix,
 		FileSystem: webdav.Dir(dir),
 		LockSystem: webdav.NewMemLS(),
 		Logger: func(r *http.Request, err error) {
@@ -119,7 +121,7 @@ func serve(baseHref string, dir string, bindAddr string) {
 			log.Printf(logmsg)
 		},
 	}
-	http.Handle(baseHref, dav)
+	http.Handle("/", dav)
 
 	if err := http.ListenAndServe(bindAddr, nil); err != nil {
 		log.Fatalf("[SERVER] ERROR: %w", err)

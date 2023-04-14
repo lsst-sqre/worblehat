@@ -11,10 +11,12 @@ spec:
     image: docker.io/lsstsqre/worblehat:ajt-dev
     imagePullPolicy: Always
     env:
-    - name: WORBLEHAT_TIMEOUT
-      value: "3600"
+    - name: WORBLEHAT_BASE_HREF
+      value: "/files/adam"
     - name: WORBLEHAT_DIR
       value: "/srv/worblehat-adam"
+    - name: WORBLEHAT_TIMEOUT
+      value: "3600"
     ports:
     - containerPort: 8000
       name: http
