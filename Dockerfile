@@ -8,7 +8,10 @@ RUN CGO_ENABLED=0 GOOS=linux make
 FROM busybox
 WORKDIR /
 COPY --from=build-stage /opt/worblehat/worblehat /worblehat
-USER 65532:65532
+RUN mkdir -p /srv/worblehat-adam
+RUN echo bar > /srv/worblehat-adam/foo
+RUN chown -R 3000001:3000001 /srv/worblehat-adam
+
 ENTRYPOINT [ "/worblehat" ]
 
 

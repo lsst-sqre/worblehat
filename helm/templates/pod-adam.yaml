@@ -11,21 +11,23 @@ spec:
     image: docker.io/lsstsqre/worblehat:ajt-dev
     imagePullPolicy: Always
     env:
-    - name: WORBLEHAT_BASE_HREF
+    - name: WORBLEHAT_BASE_URL
       value: "/files/adam"
     - name: WORBLEHAT_TIMEOUT
       value: "3600"
     - name: WORBLEHAT_DIR
-      value: "/mnt"
+      value: "/srv/worblehat-adam"
     ports:
     - containerPort: 8000
       name: http
-      protocol: TCP      
+      protocol: TCP
     volumeMounts:
     - mountPath: /mnt
       name: share
   restartPolicy: Never
   securityContext:
+    runAsUser: 3000001
+    runAsGroup: 3000001
     fsGroup: 3000001
     runAsNonRoot: true
     supplementalGroups:

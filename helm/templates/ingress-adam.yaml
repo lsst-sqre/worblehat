@@ -10,7 +10,8 @@ config:
   scopes:
     all:
       - "exec:admin"
-  loginRedirect: true
+  loginRedirect: false
+  authType: basic
 template:
   metadata:
     name: worblehat-adam

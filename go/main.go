@@ -73,7 +73,7 @@ func main() {
 
 func reap() {
 	// We rely on the global lastOp being updated by the route handler
-	log.Print("[REAPER] Starting.")
+	log.Printf("[REAPER] Starting reaper with timeout %s", timeout)
 	for {
 		lock.RLock()
 		since := time.Since(lastOp)
@@ -88,7 +88,7 @@ func reap() {
 }
 
 func serve(baseUrl string, dir string, bindAddr string) {
-	log.Print("[SERVER] Starting.")
+	log.Print("[SERVER] Starting WebDAV server at %s, serving %s on %s.", baseUrl, dir, bindAddr)
 	dav := &webdav.Handler{
 		FileSystem: webdav.Dir(dir),
 		LockSystem: webdav.NewMemLS(),
