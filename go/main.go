@@ -88,7 +88,7 @@ func reap() {
 }
 
 func serve(baseUrl string, dir string, bindAddr string) {
-	log.Print("[SERVER] Starting WebDAV server at %s, serving %s on %s.", baseUrl, dir, bindAddr)
+	log.Printf("[SERVER] Starting WebDAV server at %s, serving %s on %s.", baseUrl, dir, bindAddr)
 	dav := &webdav.Handler{
 		FileSystem: webdav.Dir(dir),
 		LockSystem: webdav.NewMemLS(),
