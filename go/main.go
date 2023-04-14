@@ -21,7 +21,6 @@ var lastOp time.Time
 
 func main() {
 
-	baseUrlE := "WORBLEHAT_BASE_URL"
 	dirE := "WORBLEHAT_DIR"
 	portE := "WORBLEHAT_PORT"
 	timeoutE := "WORBLEHAT_TIMEOUT"
@@ -29,10 +28,6 @@ func main() {
 	// If Go had either a ternary operator or let you treat empty strings
 	// as false and non-empty strings as true, this would be less clunky.
 
-	baseUrlV := os.Getenv(baseUrlE)
-	if baseUrlV == "" {
-		baseUrlV = "/"
-	}
 	dirV := os.Getenv(dirE)
 	if dirV == "" {
 		dirV = "./"
@@ -53,7 +48,6 @@ func main() {
 		}
 	}
 
-	baseUrlF := flag.String("b", baseUrlV, fmt.Sprintf("Base URL of server [$%s:/].", baseUrlE))
 	dirF := flag.String("d", dirV, fmt.Sprintf("Root of served directory tree [$%s:./].", dirE))
 	portF := flag.Int("p", portV, fmt.Sprintf("Port to serve on [$%s:8000].", portE))
 	timeoutF := flag.Int("t", timeoutV, fmt.Sprintf("Idle timeout in seconds [$%s:600].", timeoutE))
@@ -65,15 +59,14 @@ func main() {
 	bindAddr := fmt.Sprintf(":%d", *portF)
 
 	dir := *dirF
-	baseUrl := *baseUrlF
 
 	go reap()
-	serve(baseUrl, dir, bindAddr)
+	serve(dir, bindAddr)
 }
 
 func reap() {
 	// We rely on the global lastOp being updated by the route handler
-	log.Printf("[REAPER] Starting reaper with timeout %s", timeout)
+	log.Printf("[REAPER] Starting with timeout %s", timeout)
 	for {
 		lock.RLock()
 		since := time.Since(lastOp)
@@ -87,8 +80,8 @@ func reap() {
 	}
 }
 
-func serve(baseUrl string, dir string, bindAddr string) {
-	log.Printf("[SERVER] Starting WebDAV server at %s, serving %s on %s.", baseUrl, dir, bindAddr)
+func serve(dir string, bindAddr string) {
+	log.Printf("[SERVER] Starting to serve %s at %s", dir, bindAddr)
 	dav := &webdav.Handler{
 		FileSystem: webdav.Dir(dir),
 		LockSystem: webdav.NewMemLS(),
@@ -119,7 +112,7 @@ func serve(baseUrl string, dir string, bindAddr string) {
 			log.Printf(logmsg)
 		},
 	}
-	http.Handle(baseUrl, dav)
+	http.Handle("/", dav)
 
 	if err := http.ListenAndServe(bindAddr, nil); err != nil {
 		log.Fatalf("[SERVER] ERROR: %w", err)

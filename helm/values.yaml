@@ -21,7 +21,7 @@ ingress:
   # -- Additional annotations to add to the ingress
   annotations:
     nginx.ingress.kubernetes.io/use-regex: "true"
-#    nginx.ingress.kubernetes.io/rewrite-target: "/$2"
+    nginx.ingress.kubernetes.io/rewrite-target: "/$2"
 
 # -- Resource limits and requests for the worblehat frontend pod
 resources: {}
