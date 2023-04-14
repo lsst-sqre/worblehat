@@ -21,6 +21,7 @@ var lastOp time.Time
 
 func main() {
 
+	baseHrefE := "WORBLEHAT_BASE_HREF"
 	dirE := "WORBLEHAT_DIR"
 	portE := "WORBLEHAT_PORT"
 	timeoutE := "WORBLEHAT_TIMEOUT"
@@ -28,6 +29,10 @@ func main() {
 	// If Go had either a ternary operator or let you treat empty strings
 	// as false and non-empty strings as true, this would be less clunky.
 
+	baseHrefV := os.Getenv(baseHrefE)
+	if baseHrefV == "" {
+		baseHrefV = "/"
+	}
 	dirV := os.Getenv(dirE)
 	if dirV == "" {
 		dirV = "./"
@@ -48,6 +53,7 @@ func main() {
 		}
 	}
 
+	baseHrefF := flag.String("b", baseHrefV, fmt.Sprintf("Base HREF [$%s:/].", baseHrefE))
 	dirF := flag.String("d", dirV, fmt.Sprintf("Root of served directory tree [$%s:./].", dirE))
 	portF := flag.Int("p", portV, fmt.Sprintf("Port to serve on [$%s:8000].", portE))
 	timeoutF := flag.Int("t", timeoutV, fmt.Sprintf("Idle timeout in seconds [$%s:600].", timeoutE))
@@ -58,10 +64,11 @@ func main() {
 	timeout = time.Duration(int(1e9) * *timeoutF)
 	bindAddr := fmt.Sprintf(":%d", *portF)
 
+	baseHref := *baseHrefF
 	dir := *dirF
 
 	go reap()
-	serve(dir, bindAddr)
+	serve(baseHref, dir, bindAddr)
 }
 
 func reap() {
@@ -80,8 +87,8 @@ func reap() {
 	}
 }
 
-func serve(dir string, bindAddr string) {
-	log.Printf("[SERVER] Starting to serve %s at %s", dir, bindAddr)
+func serve(baseHref string, dir string, bindAddr string) {
+	log.Printf("[SERVER] Starting to serve %s at %s on %s", dir, bindAddr, baseHref)
 	dav := &webdav.Handler{
 		FileSystem: webdav.Dir(dir),
 		LockSystem: webdav.NewMemLS(),
@@ -112,7 +119,7 @@ func serve(dir string, bindAddr string) {
 			log.Printf(logmsg)
 		},
 	}
-	http.Handle("/", dav)
+	http.Handle(baseHref, dav)
 
 	if err := http.ListenAndServe(bindAddr, nil); err != nil {
 		log.Fatalf("[SERVER] ERROR: %w", err)
