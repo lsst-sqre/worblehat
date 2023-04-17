@@ -1,0 +1,33 @@
+apiVersion: gafaelfawr.lsst.io/v1alpha1
+kind: GafaelfawrIngress
+metadata:
+  name: worblehat-rra
+  namespace: worblehat
+  labels:
+    owner: rra
+config:
+  baseUrl: {{ .Values.global.baseUrl | quote }}
+  scopes:
+    all:
+      - "exec:admin"
+  loginRedirect: false
+  authType: basic
+template:
+  metadata:
+    name: worblehat-rra
+    {{- with .Values.ingress.annotations }}
+    annotations:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+  spec:
+    rules:
+      - host: {{ required "global.host must be set" .Values.global.host | quote }}
+        http:
+          paths:
+            - path: /files/rra
+              pathType: Prefix
+              backend:
+                service:
+                  name: worblehat-rra
+                  port:
+                    number: 8000
