@@ -1,8 +1,0 @@
-apiVersion: v2
-name: worblehat
-version: 1.0.0
-description: Minimalist WebDAV fileserver for RSP
-sources:
-  - https://github.com/lsst-sqre/worblehat
-appVersion: 0.0.1
-

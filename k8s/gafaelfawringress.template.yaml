@@ -1,0 +1,35 @@
+apiVersion: gafaelfawr.lsst.io/v1alpha1
+config:
+  authType: basic
+  baseUrl: {{baseUrl}}
+  loginRedirect: false
+  scopes:
+    all:
+    - exec:notebook
+kind: GafaelfawrIngress
+metadata:
+  labels:
+    argocd.argoproj.io/instance: fileservers
+    lsst.io/category: fileserver
+    lsst.io/user: {{username}}
+  name: {{username}}-fs
+  namespace: fileservers
+template:
+  metadata:
+    labels:
+      argocd.argoproj.io/instance: fileservers
+      lsst.io/category: fileserver
+      lsst.io/user: {{username}}
+    name: {{username}}-fs
+  spec:
+    rules:
+    - host: data-dev.lsst.cloud
+      http:
+        paths:
+        - backend:
+            service:
+              name: {{username}}-fs
+              port:
+                number: 8000
+          path: /files/{{username}}
+          pathType: Prefix

@@ -1,15 +1,18 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: worblehat-{{username}}
-  namespace: worblehat
   labels:
-    owner: {{username}}
+    argocd.argoproj.io/instance: fileservers
+    lsst.io/category: fileserver
+    lsst.io/user: {{username}}
+  name: {{username}}-fs
+  namespace: fileservers
 spec:
-  type: "ClusterIP"
   ports:
-    - port: 8000
-      targetPort: 8000
-      protocol: "TCP"
+  - port: 8000
+    protocol: TCP
+    targetPort: 8000
   selector:
-    owner: {{username}}
+    lsst.io/category: fileserver
+    lsst.io/user: {{username}}
+  type: ClusterIP
