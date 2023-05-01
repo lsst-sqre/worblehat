@@ -1,0 +1,70 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  labels:
+    argocd.argoproj.io/instance: fileservers
+    lsst.io/category: fileserver
+    lsst.io/user: {{username}}
+  name: {{username}}-fs
+  namespace: fileservers
+spec:
+  template:
+    metadata:
+      labels:
+        argocd.argoproj.io/instance: fileservers
+        job-name: {{username}}-fs
+        lsst.io/category: fileserver
+        lsst.io/user: {{username}}
+      name: {{username}}-fs
+      namespace: fileservers
+    spec:
+      containers:
+      - env:
+        - name: WORBLEHAT_BASE_HREF
+          value: /files/{{username}}
+        - name: WORBLEHAT_TIMEOUT
+          value: "{{timeout}}"
+        - name: WORBLEHAT_DIR
+          value: /mnt
+        image: ghcr.io/lsst-sqre/worblehat:latest
+        imagePullPolicy: "{{pullPolicy}}"
+        name: fileserver
+        ports:
+        - containerPort: 8000
+          name: http
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 100m
+            memory: 128M
+        securityContext:
+          runAsUser: {{uid}}
+          runAsGroup: {{gid}}
+          fsGroup: {{gid}}
+          runAsNonRoot: true
+          supplementalGroups: {{gids}}
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /mnt/{v1}
+          name: {v1}
+        - mountPath: /mnt/{v2}
+          name: {v2}
+      restartPolicy: Never
+      securityContext:
+        fsGroup: {{gid}}
+        runAsGroup: {{gid}}
+        runAsNonRoot: true
+        runAsUser: {{uid}}
+        supplementalGroups: [ {{gids}} ]
+      volumes:
+      - name: {{v1}}
+        nfs:
+          path: {{v1path}}
+          server: {{v1server}}
+      - name: {{v2}
+        nfs:
+          path: {{v2path}}
+          server: {{v2server}}
