@@ -21,6 +21,9 @@ spec:
     - containerPort: 8000
       name: http
       protocol: TCP
+    securityContext:
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
     volumeMounts:
     - mountPath: /mnt
       name: share

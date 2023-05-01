@@ -4,6 +4,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"golang.org/x/net/webdav"
@@ -20,6 +21,19 @@ var timeout time.Duration
 var lastOp time.Time
 
 func main() {
+
+	baseHref, dir, bindAddr, timeout_i, err := parse()
+	if err != nil {
+		log.Fatalf("[PARSER] %w", err)
+	}
+	lastOp = time.Now()
+	timeout = time.Duration(timeout_i)
+
+	go reap()
+	serve(baseHref, dir, bindAddr)
+}
+
+func parse() (string, string, string, int, error) {
 
 	baseHrefE := "WORBLEHAT_BASE_HREF"
 	dirE := "WORBLEHAT_DIR"
@@ -39,14 +53,16 @@ func main() {
 	var err error
 	if portVS != "" {
 		if portV, err = strconv.Atoi(portVS); err != nil {
-			log.Fatalf("[PARSER] Could not convert port %s to integer.", portVS)
+			errmsg := fmt.Sprintf("Could not convert port %s to integer.", portVS)
+			return "", "", "", 0, errors.New(errmsg)
 		}
 	}
 	timeoutVS := os.Getenv(timeoutE)
 	timeoutV := 600
 	if timeoutVS != "" {
 		if timeoutV, err = strconv.Atoi(timeoutVS); err != nil {
-			log.Fatalf("[PARSER] Could not convert timeout %s to integer.", timeoutVS)
+			errmsg := fmt.Sprintf("Could not convert timeout %s to integer.", timeoutVS)
+			return "", "", "", 0, errors.New(errmsg)
 		}
 	}
 
@@ -58,14 +74,13 @@ func main() {
 	flag.Parse()
 
 	lastOp = time.Now()
-	timeout = time.Duration(int(1e9) * *timeoutF)
+	i_timeout := (int(1e9) * *timeoutF)
 	bindAddr := fmt.Sprintf(":%d", *portF)
 
 	baseHref := *baseHrefF
 	dir := *dirF
 
-	go reap()
-	serve(baseHref, dir, bindAddr)
+	return baseHref, dir, bindAddr, i_timeout, nil
 }
 
 func reap() {

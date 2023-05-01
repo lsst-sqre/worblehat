@@ -16,11 +16,18 @@ spec:
     - name: WORBLEHAT_DIR
       value: "/mnt"
     - name: WORBLEHAT_TIMEOUT
-      value: "3600"
+      value: "432000"
     ports:
     - containerPort: 8000
       name: http
       protocol: TCP
+    resources:
+      limits:
+        cpu: "100m"
+        memory: "128M"
+    securityContext:
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
     volumeMounts:
     - mountPath: /mnt
       name: share
